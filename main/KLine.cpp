@@ -1,27 +1,29 @@
-/* 
+/*
  * This file is part of the Td5Gauge Firmware (https://github.com/k0sci3j/Td5Gauge).
  * Copyright (c) 2022 Michal Kosciowski BinOwl.
- * 
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3.
  *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License 
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * 	KLine.cpp
  *  Created on: 15.02.2022
  *  Author: BinOwl
- * 
+ *
  */
 #include "Arduino.h"
 #include "KLine.h"
 #include "Effortless_SPIFFS.h"
+
+// #define DEBUG
 
 
 #define PIN_TX 10
@@ -87,7 +89,6 @@ void KLine::send_recv_cmd(const uint8_t *cmd, bool pgm = true) {
 	if ((sum & 0xff) == _response[c - 1] && c == resp_len)
 		_response_status = true;
 	_response_len = c;
-
 }
 
 void KLine::fast_init() {
@@ -97,7 +98,6 @@ void KLine::fast_init() {
 		Serial1.end();
 	}
 	digitalWrite(PIN_TX, HIGH);
-	pinMode(PIN_TX, OUTPUT);
 	digitalWrite(PIN_TX, LOW);
 	delay(25);
 	delayMicroseconds(500);
@@ -283,6 +283,9 @@ bool KLine::keepAlive() {
 }
 extern eSPIFFS fileSystem;
 void KLine::restart() {
+#ifdef DEBUG
+  return;
+#endif
 	if(auto_off == 1){
 		uint r = 1;
     	fileSystem.saveToFile(FILE_RESET, r);

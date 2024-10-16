@@ -1,23 +1,23 @@
-/* 
+/*
  * This file is part of the Td5Gauge Firmware (https://github.com/k0sci3j/Td5Gauge).
  * Copyright (c) 2022 Michal Kosciowski BinOwl.
- * 
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3.
  *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License 
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * 	main.cpp
  *  Created on: 15.02.2022
  *  Author: BinOwl
- * 
+ *
  */
 
 #define VER "v1.1"
@@ -111,6 +111,11 @@ bool check_long_press(uint8_t b) {
 }
 
 void setup() {
+	Serial.begin(115200);
+	delay(1000);  // Wait for serial to initialize
+	Serial.printf("\n#################################################\n");
+	Serial.printf("BinOwl Td5Gauge Firmware version: %s\n", VER);
+	Serial.printf("#################################################\n");
 	pinMode(LCD_E, OUTPUT);
 	digitalWrite(LCD_E, HIGH);
 	lcd = new LCDBigFont(LCD_RS, LCD_E, LCD_D4, LCD_D5, LCD_D6, LCD_D7);
@@ -123,12 +128,11 @@ void setup() {
 	pinMode(BUTTON_PLUS, INPUT_PULLUP);
 	pinMode(BUTTON_MINUS, INPUT_PULLUP);
 	pinMode(PIN_TX, OUTPUT);
-	pinMode(PIN_RX, OUTPUT);
+	pinMode(PIN_RX, INPUT);
 	digitalWrite(PIN_TX, HIGH);
-	digitalWrite(PIN_RX, HIGH);
 	ledcAttachPin(LCD_BKL, PWM1_CH);
   	ledcSetup(PWM1_CH, PWM1_F, PWM1_RES);
-	
+
 	ledcWrite(PWM1_CH, 0);
 
     if(!fileSystem.openFromFile(FILE_MENU_POS, curr_func)){
@@ -183,11 +187,11 @@ void setup() {
 				lcd->setCursor(0, 0);
 				lcd->print(F("Firmware"));
 				lcd->setCursor(0, 1);
-				#ifdef POLISH
+#ifdef POLISH
 				lcd->printf("Czekam %ds...", i/100);
-				#else
+#else
 				lcd->printf("Waiting %ds...", i/100);
-				#endif
+#endif
 			}
 		}
 		ESP.restart();
@@ -195,29 +199,29 @@ void setup() {
 	if(auto_off && reset_state){
 		lcd->noDisplay();
 		delay(10000);
-		Serial1.begin(10400);
+		Serial1.begin(10400, SERIAL_8N1, PIN_RX, PIN_TX);
 		kline = new KLine();
 	}
 	else {
 		lcd->display();
 		ledcWrite(PWM1_CH, lcd_backlight);
 		lcd->clear();
-		#ifdef LCD1602
+#ifdef LCD1602
 		lcd->setCursor(1, 0);
 		lcd->print(F("www.binowl.com"));
-		#else
+#else
 		lcd->setCursor(3, 1);
 		lcd->print(F("www.binowl.com"));
-		#endif
+#endif
 		delay(3000);
 		lcd->clear();
-		#ifdef LCD1602
+#ifdef LCD1602
 		lcd->setCursor(0, 1);
 		lcd->print(F(VER));
-		#else
+#else
 		lcd->setCursor(0, 3);
 		lcd->print(F(VER));
-		#endif
+#endif
 		delay(1000);
 		lcd->clear();
 #ifdef POLISH
@@ -231,12 +235,12 @@ void setup() {
 			lcd->print('.');
 			delay(2000);
 		}
-		Serial1.begin(10400);
+		Serial1.begin(10400, SERIAL_8N1, PIN_RX, PIN_TX);
 		kline = new KLine();
 	}
 	lcd->display();
 	ledcWrite(PWM1_CH, lcd_backlight);
-	
+
 	RunWebServer();
 
 	keepAliveRunner = new RunMillis(2000, runKeepAlive);
@@ -1095,7 +1099,7 @@ void runCheckButton() {
 				--curr_func;
 			else
 				curr_func = FUNCTIONS;
-            
+
             fileSystem.saveToFile(FILE_MENU_POS, curr_func);
 		}
 	}

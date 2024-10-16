@@ -1,23 +1,23 @@
-/* 
+/*
  * This file is part of the Td5Gauge Firmware (https://github.com/k0sci3j/Td5Gauge).
  * Copyright (c) 2022 Michal Kosciowski BinOwl.
- * 
- * This program is free software: you can redistribute it and/or modify  
- * it under the terms of the GNU General Public License as published by  
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, version 3.
  *
- * This program is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License 
+ * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  *
  * 	Td5Gauge.h
  *  Created on: 20.01.2022
  *  Author: BinOwl
- * 
+ *
  */
 
 #ifndef TD5GAUGE_H_
@@ -37,8 +37,8 @@
 #define BUTTON_PLUS 22
 #define BUTTON_MINUS 19
 
-#define PIN_TX 10
-#define PIN_RX 9
+#define PIN_TX 17
+#define PIN_RX 16
 
 #define LCD_RS 13
 #define LCD_E 12
