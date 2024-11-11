@@ -1,5 +1,7 @@
 # _BinOwl Td5Gauge firmware_
 
+<font size="4">***This is a fork of the official repository from k0sci3j with adjustments to make it work for my personal usecase. The rest of this README is unchanged.<br/>If you feel like donating the original author, please follow the links below.***</font>
+___
 <font size="4">***If this software helped you or you think it is valuable, I would be grateful for a tip via [PayPal](https://paypal.me/k0sci3j), [donate me](https://www.paypal.com/donate/?hosted_button_id=YASECWP5FR7DL) or support on [Patreon](https://patreon.com/k0sci3j)***</font>
 ___
 
@@ -42,7 +44,7 @@ Setup your working environment according to [ESP-IDF Documentation](https://docs
 1. Install prerequisites for your OS (i.e.: [Linux](https://docs.espressif.com/projects/esp-idf/en/v4.4.5/esp32/get-started/linux-setup.html))
 2. [Get ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/v4.4.5/esp32/get-started/index.html#get-started-get-esp-idf)
 3. [Setup ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/v4.4.5/esp32/get-started/index.html#step-3-set-up-the-tools)
-4. After installation you can export needed env settings with: 
+4. After installation you can export needed env settings with:
 
             . ./export.sh
 
@@ -70,7 +72,7 @@ Setup your working environment according to [ESP-IDF Documentation](https://docs
                 build/partition-table/partition-table.bin
 
     * OTA Initial data:
-        
+
                 build/ota_data_initial.bin
 
 ### OTA preparation
@@ -102,5 +104,5 @@ I'm using original ESP-PROG Flash/JTAG device, but you can use any compatible ES
 4. Restart and stay in monitor after programming:
 
         idf.py -p /dev/ttyUSB1 monitor
-   
+
    On this step you need to observe ESP32 monitor as device will start to encrypt partitions. Do not plug off it on this step. You can safely unplug device after partition encryption process ends and ESP32 restarts.
