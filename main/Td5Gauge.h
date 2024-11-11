@@ -37,9 +37,6 @@
 #define BUTTON_PLUS 22
 #define BUTTON_MINUS 19
 
-#define PIN_TX 17
-#define PIN_RX 16
-
 #define LCD_RS 13
 #define LCD_E 12
 #define LCD_D4 14
@@ -68,12 +65,12 @@ LCDBigFont *lcd;
 uint curr_func = 0;
 uint run_kline = true;
 
-uint speed_multiplier;
+uint speed_multiplier = 0;
 uint lcd_backlight;
-uint auto_off;
-uint reset_state;
-uint temp_alarm_set;
-uint temp_alarm;
+uint auto_off = 0;
+uint reset_state = 0;
+uint temp_alarm_set = 1;
+uint temp_alarm = 95;
 
 
 #endif /* TD5GAUGE_H_ */

@@ -199,7 +199,6 @@ void setup() {
 	if(auto_off && reset_state){
 		lcd->noDisplay();
 		delay(10000);
-		Serial1.begin(10400, SERIAL_8N1, PIN_RX, PIN_TX);
 		kline = new KLine();
 	}
 	else {
@@ -208,18 +207,22 @@ void setup() {
 		lcd->clear();
 #ifdef LCD1602
 		lcd->setCursor(1, 0);
+		lcd->print(F("  Td5 Gauge"));
+		lcd->setCursor(1, 1);
 		lcd->print(F("www.binowl.com"));
 #else
 		lcd->setCursor(3, 1);
+		lcd->print(F("  Td5 Gauge"));
+		lcd->setCursor(3, 2);
 		lcd->print(F("www.binowl.com"));
+		lcd->setCursor(0, 3);
+		lcd->print(F(VER));
 #endif
 		delay(3000);
+		digitalWrite(2, LOW);
 		lcd->clear();
 #ifdef LCD1602
 		lcd->setCursor(0, 1);
-		lcd->print(F(VER));
-#else
-		lcd->setCursor(0, 3);
 		lcd->print(F(VER));
 #endif
 		delay(1000);
@@ -233,9 +236,8 @@ void setup() {
 #endif
 		for(int i=0;i<=2;i++){
 			lcd->print('.');
-			delay(2000);
+			delay(1000);
 		}
-		Serial1.begin(10400, SERIAL_8N1, PIN_RX, PIN_TX);
 		kline = new KLine();
 	}
 	lcd->display();

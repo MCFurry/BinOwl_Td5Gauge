@@ -21,15 +21,15 @@
  */
 #include "Arduino.h"
 #include "KLine.h"
+#include "LCDBigFont.h"
 #include "Effortless_SPIFFS.h"
 
 // #define DEBUG
 
-
-#define PIN_TX 10
 #define FILE_RESET "/4.cfg"
 
 extern uint auto_off;
+extern LCDBigFont *lcd;
 
 //Format: { cmd_len, resp_len, delay_time, ...msg... }
 const uint8_t cmd_init[] = { 4, 5, 35, 0x81, 0x13, 0xf7, 0x81 };
@@ -69,20 +69,20 @@ void KLine::send_recv_cmd(const uint8_t *cmd, bool pgm = true) {
 	delay_time = cmd[2];
 	for (uint8_t i = 0; i < cmd_len; i++) {
 		uint8_t c = cmd[i + 3];
-		Serial1.write(c);
+		Serial2.write(c);
 		delay(3);
 		sum += c;
 	}
-	Serial1.write(sum & 0xff);
+	Serial2.write(sum & 0xff);
 	delay(delay_time);
 	uint8_t l = 0, c = 0;
 	sum = 0;
 	_response_status = false;
-	while (Serial1.available() > 0) {
+	while (Serial2.available() > 0) {
 		if (l >= cmd_len + 1) {
-			sum += (_response[c++] = Serial1.read());
+			sum += (_response[c++] = Serial2.read());
 		} else
-			Serial1.read();
+			Serial2.read();
 		l++;
 	}
 	sum = sum - _response[c - 1];
@@ -92,23 +92,22 @@ void KLine::send_recv_cmd(const uint8_t *cmd, bool pgm = true) {
 }
 
 void KLine::fast_init() {
-	bool serial_rerun = false;
-	if (Serial1) {
-		serial_rerun = true;
-		Serial1.end();
-	}
 	digitalWrite(PIN_TX, HIGH);
+	pinMode(PIN_TX, OUTPUT);
+	pinMode(PIN_RX, INPUT);
+	digitalWrite(PIN_TX, HIGH);
+	Serial.printf("Fast init\n");
 	digitalWrite(PIN_TX, LOW);
 	delay(25);
 	delayMicroseconds(500);
 	digitalWrite(PIN_TX, HIGH);
 	delay(25);
 	delayMicroseconds(500);
-	if (serial_rerun) {
-		Serial1.begin(10400);
-		while (!Serial1)
-			;
-	}
+
+	Serial.printf("Fast init done\n");
+	Serial2.begin(10400, SERIAL_8N1, PIN_RX, PIN_TX);
+	while (!Serial2)
+		;
 }
 
 uint16_t KLine::keygen() {
@@ -297,8 +296,17 @@ void KLine::restart() {
 void KLine::initialize() {
 	fast_init();
 	send_recv_cmd(cmd_init);
-	if (!_response_status)
+	lcd->clear();
+	if (!_response_status) {
+		lcd->setCursor(0, 0);
+		lcd->print(F("Init failed"));
+		lcd->setCursor(0, 1);
+		lcd->print(F("Restarting..."));
 		restart();
+	} else {
+		lcd->setCursor(0, 0);
+		lcd->print(F("Init okay"));
+	}
 	send_recv_cmd(cmd_diagnostic);
 	if (!_response_status)
 		restart();
