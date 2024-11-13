@@ -29,6 +29,7 @@
 #define FILE_RESET "/4.cfg"
 
 extern uint auto_off;
+extern uint reset_state;
 extern LCDBigFont *lcd;
 
 //Format: { cmd_len, resp_len, delay_time, ...msg... }
@@ -298,10 +299,12 @@ void KLine::initialize() {
 	send_recv_cmd(cmd_init);
 	lcd->clear();
 	if (!_response_status) {
-		lcd->setCursor(0, 0);
-		lcd->print(F("Init failed"));
-		lcd->setCursor(0, 1);
-		lcd->print(F("Restarting..."));
+		if (auto_off && reset_state) {
+			lcd->setCursor(0, 0);
+			lcd->print(F("Init failed"));
+			lcd->setCursor(0, 1);
+			lcd->print(F("Restarting..."));
+		}
 		restart();
 	} else {
 		lcd->setCursor(0, 0);

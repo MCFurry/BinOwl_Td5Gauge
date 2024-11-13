@@ -61,7 +61,6 @@ RunMillis *tempCheckRunner;
 RunMillis *screenBlinkRunner;
 LCDBigFont *lcd;
 
-
 uint curr_func = 0;
 uint run_kline = true;
 

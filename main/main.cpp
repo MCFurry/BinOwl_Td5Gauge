@@ -22,7 +22,7 @@
 
 #define VER "v1.1"
 //#define POLISH
-//#define LCD1602
+#define LCD1602
 
 #include "Td5Gauge.h"
 #include "WEB.h"
@@ -77,7 +77,7 @@ void runScreenBlink() {
 			ledcWrite(PWM1_CH, 255);
 			backlight_state = 1;
 		} else {
-			ledcWrite(PWM1_CH, 5);
+			ledcWrite(PWM1_CH, 1);
 			backlight_state = 0;
 		}
 	} else {
@@ -219,7 +219,6 @@ void setup() {
 		lcd->print(F(VER));
 #endif
 		delay(3000);
-		digitalWrite(2, LOW);
 		lcd->clear();
 #ifdef LCD1602
 		lcd->setCursor(0, 1);
