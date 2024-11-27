@@ -20,7 +20,7 @@
  *
  */
 
-#define VER "v1.1"
+#define VER "v1.3"
 //#define POLISH
 #define LCD1602
 
@@ -156,11 +156,11 @@ void setup() {
         fileSystem.saveToFile(FILE_TEMP_AL_SET, temp_alarm_set);
 	}
     if(!fileSystem.openFromFile(FILE_AUTO_OFF, auto_off)){
-        auto_off=0;
+        auto_off=1;
         fileSystem.saveToFile(FILE_AUTO_OFF, auto_off);
     }
     if(!fileSystem.openFromFile(FILE_LCD_BACKLIGHT, lcd_backlight)){
-        lcd_backlight=255;
+        lcd_backlight=5;
         fileSystem.saveToFile(FILE_LCD_BACKLIGHT, lcd_backlight);
     }
     if(!fileSystem.openFromFile(FILE_RESET, reset_state)){
@@ -168,7 +168,8 @@ void setup() {
         fileSystem.saveToFile(FILE_RESET, reset_state);
     }
 
-	if(!digitalRead(BUTTON_PLUS) || !digitalRead(BUTTON_MINUS)){ // Here is Auto OFF reset. After long press on system start Auto OFF will be disabled.
+	// Here is Auto OFF reset. After long press on system start Auto OFF will be disabled.
+	if(!digitalRead(BUTTON_PLUS) && !digitalRead(BUTTON_MINUS)){
 		auto_off=0;
         fileSystem.saveToFile(FILE_AUTO_OFF, auto_off);
 		lcd->display();
@@ -193,6 +194,10 @@ void setup() {
 				lcd->printf("Waiting %ds...", i/100);
 #endif
 			}
+			// Reset if user presses both buttons again
+			if(i < 35500 && !digitalRead(BUTTON_PLUS) && !digitalRead(BUTTON_MINUS)) {
+				ESP.restart();
+			}
 		}
 		ESP.restart();
 	}
@@ -202,41 +207,39 @@ void setup() {
 		kline = new KLine();
 	}
 	else {
+		reset_state = 0;
+		fileSystem.saveToFile(FILE_RESET, reset_state);
 		lcd->display();
 		ledcWrite(PWM1_CH, lcd_backlight);
 		lcd->clear();
 #ifdef LCD1602
-		lcd->setCursor(1, 0);
-		lcd->print(F("  Td5 Gauge"));
-		lcd->setCursor(1, 1);
-		lcd->print(F("www.binowl.com"));
-#else
-		lcd->setCursor(3, 1);
-		lcd->print(F("  Td5 Gauge"));
-		lcd->setCursor(3, 2);
-		lcd->print(F("www.binowl.com"));
-		lcd->setCursor(0, 3);
-		lcd->print(F(VER));
-#endif
-		delay(3000);
-		lcd->clear();
-#ifdef LCD1602
+		lcd->setCursor(4, 0);
+		lcd->print(F("Td5Gauge"));
 		lcd->setCursor(0, 1);
 		lcd->print(F(VER));
+		delay(2000);
+		lcd->setCursor(2, 0);
+		lcd->print(F("Land Rover"));
+		lcd->setCursor(0, 1);
+		lcd->print(F("The best 4x4xfar"));
+#else
+		lcd->setCursor(6, 0);
+		lcd->print(F("Td5Gauge "));
+		lcd->print(F(VER));
+		lcd->setCursor(4, 1);
+		lcd->print(F("Land Rover"));
+		lcd->setCursor(2, 3);
+		lcd->print(F("The best 4x4xfar"));
 #endif
-		delay(1000);
+		delay(2000);
 		lcd->clear();
 #ifdef POLISH
 		lcd->setCursor(0, 0);
 		lcd->print(F("Inicjalizacja"));
 #else
 		lcd->setCursor(0, 0);
-		lcd->print(F("Initializing"));
+		lcd->print(F("Initializing..."));
 #endif
-		for(int i=0;i<=2;i++){
-			lcd->print('.');
-			delay(1000);
-		}
 		kline = new KLine();
 	}
 	lcd->display();
@@ -818,8 +821,6 @@ void fuel_consumption_current_display() {
 	lcd->print(F("l/100"));
 }
 
-#define FUNCTIONS 19
-
 void show_confirmation() {
 	lcd->clear();
 	lcd->setCursor(0, 0);
@@ -872,10 +873,6 @@ void set_speed_multiplier() {
     fileSystem.saveToFile(FILE_SPEED_MULTIPLIER, speed_multiplier);
 	show_confirmation();
 }
-
-#define MENU_FUNC_SPEED_MULTIPLIER 5
-#define MENU_FUNC_AUTO_OFF 10
-#define MENU_FUNC_TEMP_ALARM 8
 
 //Backlight PWM jest przechowywany w zmiennej byte jako całkowity.
 //Zakres od 0 - 255.
@@ -1033,19 +1030,19 @@ void runCheckButton() {
 		delay(50); //anti flicker
 		if (!digitalRead(BUTTON_PLUS)) {
 			switch(curr_func) {
-			case MENU_FUNC_SPEED_MULTIPLIER:
+			case MenuFunction::FUNC_SPEED:
 				if(check_long_press(BUTTON_PLUS)){
 					set_speed_multiplier();
 					return;
 				}
 				break;
-			case MENU_FUNC_AUTO_OFF:
+			case MenuFunction::FUNC_VOLTAGE:
 				if(check_long_press(BUTTON_PLUS)){
 					set_auto_off();
 					return;
 				}
 				break;
-			case MENU_FUNC_TEMP_ALARM:
+			case MenuFunction::FUNC_COOLANT_TEMP:
 				if(check_long_press(BUTTON_PLUS)){
 					set_temp_alarm();
 					return;
@@ -1059,7 +1056,7 @@ void runCheckButton() {
 				break;
 			}
 			run_kline = true;
-			if (curr_func < FUNCTIONS)
+			if (curr_func+1 < MenuFunction::NUM_FUNCS)
 				++curr_func;
 			else
 				curr_func = 0;
@@ -1070,19 +1067,19 @@ void runCheckButton() {
 		delay(50); //anti flicker
 		if (!digitalRead(BUTTON_MINUS)) {
 			switch(curr_func) {
-			case MENU_FUNC_SPEED_MULTIPLIER:
+			case MenuFunction::FUNC_SPEED:
 				if(check_long_press(BUTTON_MINUS)){
 					set_speed_multiplier();
 					return;
 				}
 				break;
-			case MENU_FUNC_AUTO_OFF:
+			case MenuFunction::FUNC_VOLTAGE:
 				if(check_long_press(BUTTON_MINUS)){
 					set_auto_off();
 					return;
 				}
 				break;
-			case MENU_FUNC_TEMP_ALARM:
+			case MenuFunction::FUNC_COOLANT_TEMP:
 				if(check_long_press(BUTTON_MINUS)){
 					set_temp_alarm();
 					return;
@@ -1099,8 +1096,7 @@ void runCheckButton() {
 			if (curr_func > 0)
 				--curr_func;
 			else
-				curr_func = FUNCTIONS;
-
+				curr_func = MenuFunction::NUM_FUNCS;
             fileSystem.saveToFile(FILE_MENU_POS, curr_func);
 		}
 	}
@@ -1122,7 +1118,11 @@ void loop() {
 	screenBlinkRunner->run();
 	runCheckButton();
 	if (run_kline) {
-		funcs[curr_func]();
+		if (temp_alarm) {
+			funcs[MenuFunction::FUNC_COOLANT_TEMP]();
+		} else {
+			funcs[curr_func]();
+		}
 		run_kline = false;
 	}
 	uint r;

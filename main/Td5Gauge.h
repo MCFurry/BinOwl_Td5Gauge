@@ -34,8 +34,8 @@
 #define PWM1_RES   8
 #define PWM1_F  1000
 
-#define BUTTON_PLUS 22
-#define BUTTON_MINUS 19
+#define BUTTON_PLUS 19
+#define BUTTON_MINUS 22
 
 #define LCD_RS 13
 #define LCD_E 12
@@ -51,6 +51,29 @@
 #define FILE_RESET "/4.cfg"
 #define FILE_TEMP_AL_SET "/5.cfg"
 
+enum MenuFunction {
+  FUNC_FUEL_CONSUMPTION_LH = 0,
+  FUNC_FUEL_CONSUMPTION_L100KM = 1,
+  FUNC_FUEL_DEMAND = 2,
+  FUNC_IDLE_FUEL = 3,
+  FUNC_INJECTED_FUEL = 4,
+  FUNC_SPEED = 5,
+  FUNC_FUEL_TEMP = 6,
+  FUNC_AIR_TEMP = 7,
+  FUNC_COOLANT_TEMP = 8,
+  FUNC_RPM = 9,
+  FUNC_VOLTAGE = 10,
+  FUNC_MAF_SENSOR = 11,
+  FUNC_AAP_SENSOR = 12,
+  FUNC_PRESS1_SENSOR = 13,
+  FUNC_PRESS2_SENSOR = 14,
+  FUNC_PRESS3_SENSOR = 15,
+  FUNC_TURBO_CHARGE = 16,
+  FUNC_WASTEGATE_MOD = 17,
+  FUNC_INJ_BALANCE = 18,
+  FUNC_THROTTLE = 19,
+  NUM_FUNCS = 20
+};
 
 eSPIFFS fileSystem;
 KLine *kline;
@@ -65,7 +88,7 @@ uint curr_func = 0;
 uint run_kline = true;
 
 uint speed_multiplier = 0;
-uint lcd_backlight;
+uint lcd_backlight = 5;
 uint auto_off = 0;
 uint reset_state = 0;
 uint temp_alarm_set = 1;

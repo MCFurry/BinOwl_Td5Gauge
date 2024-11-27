@@ -35,7 +35,7 @@ public:
             else {
                 _server->client().setNoDelay(true);
                 _server->send_P(200, "text/html", UPDATE_success);
-                delay(100);
+                delay(1000);
                 _server->client().stop();
                 ESP.restart();
             }

@@ -87,8 +87,10 @@ void KLine::send_recv_cmd(const uint8_t *cmd, bool pgm = true) {
 		l++;
 	}
 	sum = sum - _response[c - 1];
-	if ((sum & 0xff) == _response[c - 1] && c == resp_len)
+	if ((sum & 0xff) == _response[c - 1] && c == resp_len) {
 		_response_status = true;
+		_keepAlive_err_cnt = 0;
+	}
 	_response_len = c;
 }
 
@@ -299,7 +301,7 @@ void KLine::initialize() {
 	send_recv_cmd(cmd_init);
 	lcd->clear();
 	if (!_response_status) {
-		if (auto_off && reset_state) {
+		if (!reset_state) {
 			lcd->setCursor(0, 0);
 			lcd->print(F("Init failed"));
 			lcd->setCursor(0, 1);

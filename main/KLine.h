@@ -74,7 +74,7 @@ private:
 	uint8_t _response[50];
 	uint8_t _response_len;
 	bool _response_status;
-	uint8_t _keepAlive_err_cnt;
+	uint8_t _keepAlive_err_cnt = 0;
 	bool _is_nnn;
 	void send_recv_cmd(const byte *cmd, bool pgm);
 	uint16_t keygen();
