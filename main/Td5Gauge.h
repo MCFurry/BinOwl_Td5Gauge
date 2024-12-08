@@ -51,6 +51,8 @@
 #define FILE_RESET "/4.cfg"
 #define FILE_TEMP_AL_SET "/5.cfg"
 
+#define TEMP_ALARM_TIME 5000
+
 enum MenuFunction {
   FUNC_FUEL_CONSUMPTION_LH = 0,
   FUNC_FUEL_CONSUMPTION_L100KM = 1,
@@ -91,8 +93,8 @@ uint speed_multiplier = 0;
 uint lcd_backlight = 5;
 uint auto_off = 0;
 uint reset_state = 0;
-uint temp_alarm_set = 1;
-uint temp_alarm = 95;
+uint temp_alarm_thresh = 95;
+long int temp_alarm_time = 0;
 
 
 #endif /* TD5GAUGE_H_ */

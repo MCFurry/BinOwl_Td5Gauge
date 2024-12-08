@@ -20,7 +20,7 @@
  *
  */
 
-#define VER "v1.3"
+#define VER "v1.4"
 //#define POLISH
 #define LCD1602
 
@@ -62,17 +62,21 @@ void runKline() {
 
 void runTempAlarm() {
 	kline->read_temps();
-	if(kline->coolant_temp >= ((int32_t) temp_alarm_set)){
-		temp_alarm = 1;
-	} else {
-		temp_alarm = 0;
+	if(kline->coolant_temp >= ((int32_t) temp_alarm_thresh)){
+		temp_alarm_time = millis();
 	}
 }
 
+bool isTempAlarm() {
+	if(millis() - temp_alarm_time >= TEMP_ALARM_TIME){
+		return false;
+	}
+	return true;
+}
 
 uint backlight_state = 0;
 void runScreenBlink() {
-	if(temp_alarm){
+	if(isTempAlarm()){
 		if(backlight_state == 0) {
 			ledcWrite(PWM1_CH, 255);
 			backlight_state = 1;
@@ -147,13 +151,13 @@ void setup() {
 		speed_multiplier = 100;
         fileSystem.saveToFile(FILE_SPEED_MULTIPLIER, speed_multiplier);
 	}
-    if(!fileSystem.openFromFile(FILE_TEMP_AL_SET, temp_alarm_set)){
-        temp_alarm_set=95;
-        fileSystem.saveToFile(FILE_TEMP_AL_SET, temp_alarm_set);
+    if(!fileSystem.openFromFile(FILE_TEMP_AL_SET, temp_alarm_thresh)){
+        temp_alarm_thresh=95;
+        fileSystem.saveToFile(FILE_TEMP_AL_SET, temp_alarm_thresh);
     }
-	if(temp_alarm_set < 60) {
-		temp_alarm_set = 95;
-        fileSystem.saveToFile(FILE_TEMP_AL_SET, temp_alarm_set);
+	if(temp_alarm_thresh < 60) {
+		temp_alarm_thresh = 95;
+        fileSystem.saveToFile(FILE_TEMP_AL_SET, temp_alarm_thresh);
 	}
     if(!fileSystem.openFromFile(FILE_AUTO_OFF, auto_off)){
         auto_off=1;
@@ -969,14 +973,14 @@ void set_auto_off() {
 	show_confirmation();
 }
 
-// Temperature alarm - Periodically blink screen on >temp_alarm_set
+// Temperature alarm - Periodically blink screen on >temp_alarm_thresh
 void set_temp_alarm() {
 	ledcWrite(PWM1_CH, lcd_backlight);
 	lcd->clear();
 	lcd->setCursor(0, 0);
 	lcd->print(F("Max.Temp:"));
 	while(!digitalRead(BUTTON_PLUS)) {
-		uint t = temp_alarm_set;
+		uint t = temp_alarm_thresh;
 		if(t < 140)
 			t += 1;
 		else
@@ -995,11 +999,11 @@ void set_temp_alarm() {
 		lcd->setCursor(0, 1);
 		lcd->printBigNumber(val);
 #endif
-		temp_alarm_set = t;
+		temp_alarm_thresh = t;
 		delay(500);
 	}
 	while(!digitalRead(BUTTON_MINUS)) {
-		uint t = temp_alarm_set;
+		uint t = temp_alarm_thresh;
 		if(t > 60)
 			t -= 1;
 		else
@@ -1018,10 +1022,10 @@ void set_temp_alarm() {
 		lcd->setCursor(0, 1);
 		lcd->printBigNumber(val);
 #endif
-		temp_alarm_set = t;
+		temp_alarm_thresh = t;
 		delay(500);
 	}
-    fileSystem.saveToFile(FILE_TEMP_AL_SET, temp_alarm_set);
+    fileSystem.saveToFile(FILE_TEMP_AL_SET, temp_alarm_thresh);
 	show_confirmation();
 }
 
@@ -1118,7 +1122,7 @@ void loop() {
 	screenBlinkRunner->run();
 	runCheckButton();
 	if (run_kline) {
-		if (temp_alarm) {
+		if (isTempAlarm()) {
 			funcs[MenuFunction::FUNC_COOLANT_TEMP]();
 		} else {
 			funcs[curr_func]();
