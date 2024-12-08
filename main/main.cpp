@@ -20,7 +20,7 @@
  *
  */
 
-#define VER "v1.4"
+#define VER "v1.5"
 //#define POLISH
 #define LCD1602
 
@@ -143,6 +143,9 @@ void setup() {
         curr_func=0;
         fileSystem.saveToFile(FILE_MENU_POS, curr_func);
     }
+	if (curr_func >= NUM_FUNCS) {
+		curr_func = 0;
+	}
     if(!fileSystem.openFromFile(FILE_SPEED_MULTIPLIER, speed_multiplier)){
         speed_multiplier=100;
         fileSystem.saveToFile(FILE_SPEED_MULTIPLIER, speed_multiplier);
@@ -1100,10 +1103,14 @@ void runCheckButton() {
 			if (curr_func > 0)
 				--curr_func;
 			else
-				curr_func = MenuFunction::NUM_FUNCS;
+				curr_func = (MenuFunction::NUM_FUNCS-1);
             fileSystem.saveToFile(FILE_MENU_POS, curr_func);
 		}
 	}
+}
+
+void fallBack() {
+	curr_func = 0;
 }
 
 typedef void (*FP)();
@@ -1112,7 +1119,8 @@ const FP funcs[] = { &fuel_consumption, &fuel_consumption_current_display,
 		&injected_fuel_run, &speed_run, &fuel_temp_run,
 		&air_temp_run, &coolant_temp_run, &rpm_run, &voltage_run,
 		&maf_sensor_run, &aap_sensor_run, &press1_sensor_run,
-		&press2_sensor_run, &press3_sensor_run, &turbo_charge_run, &wastegate_mod_run, &inj_bal_run, &throttle_run };
+		&press2_sensor_run, &press3_sensor_run, &turbo_charge_run,
+		&wastegate_mod_run, &inj_bal_run, &throttle_run, &fallBack };
 
 void loop() {
 	keepAliveRunner->run();
