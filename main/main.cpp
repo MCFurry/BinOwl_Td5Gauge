@@ -20,7 +20,7 @@
  *
  */
 
-#define VER "v1.5"
+#define VER "v1.6b"
 //#define POLISH
 #define LCD1602
 
@@ -114,6 +114,10 @@ bool check_long_press(uint8_t b) {
 	return true;
 }
 
+String formatToWebString(String name, String value, String unit) {
+	return "{\"n\":\"" + name + "\",\"v\":\"" + value + "\",\"u\":\"" + unit + "\"}";
+}
+
 void setup() {
 	Serial.begin(115200);
 	delay(1000);  // Wait for serial to initialize
@@ -139,6 +143,7 @@ void setup() {
 
 	ledcWrite(PWM1_CH, 0);
 
+	// File IO
     if(!fileSystem.openFromFile(FILE_MENU_POS, curr_func)){
         curr_func=0;
         fileSystem.saveToFile(FILE_MENU_POS, curr_func);
@@ -167,13 +172,18 @@ void setup() {
         fileSystem.saveToFile(FILE_AUTO_OFF, auto_off);
     }
     if(!fileSystem.openFromFile(FILE_LCD_BACKLIGHT, lcd_backlight)){
-        lcd_backlight=5;
+        lcd_backlight=255;
         fileSystem.saveToFile(FILE_LCD_BACKLIGHT, lcd_backlight);
     }
     if(!fileSystem.openFromFile(FILE_RESET, reset_state)){
         reset_state=0;
         fileSystem.saveToFile(FILE_RESET, reset_state);
     }
+
+	// Initial Ajax values
+	limitValue = formatToWebString("Temperature alarm limit", String(temp_alarm_thresh), "&deg;C");
+	autoOffValue = formatToWebString("Auto off", auto_off ? "On" : "Off", "");
+	brightnessValue = formatToWebString("Brightness", String(int(lcd_backlight)), "");
 
 	// Here is Auto OFF reset. After long press on system start Auto OFF will be disabled.
 	if(!digitalRead(BUTTON_PLUS) && !digitalRead(BUTTON_MINUS)){
@@ -779,6 +789,9 @@ void throttle_run() {
 void fuel_consumption() {
 	kline->read_fuel();
 	kline->read_rpm();
+	char val[8];
+	float f = (kline->fuel_injected / 100.0) * kline->rpm * 2.5 * 60 / 1000000.0 * 0.83;
+	dtostrf(f, 5, 2, val);
 	lcd->clear();
 #ifdef POLISH
 	lcd->setCursor(0, 0);
@@ -786,11 +799,9 @@ void fuel_consumption() {
 #else
 	lcd->setCursor(0, 0);
 	lcd->print(F("Fuel cons.:"));
+	ajaxValue = "{\"n\":\"Fuel consumption\", \"v\":" + String(val) + ",\"u\":\"l/h\"}";
 #endif
 	lcd->setCursor(0, 2);
-	char val[8];
-	float f = (kline->fuel_injected / 100.0) * kline->rpm * 2.5 * 60 / 1000000.0 * 0.83;
-	dtostrf(f, 5, 2, val);
 	lcd->setCursor(0, 1);
 #ifdef LCD1602
 	lcd->printNumber(val);
@@ -804,19 +815,20 @@ void fuel_consumption() {
 
 void fuel_consumption_current_display() {
 	lcd->clear();
+	char val[8];
+	float f = curr_fuel / 100.0;
+	if(f > 100)
+		f = 99.99;
+	dtostrf(f, 5, 2, val);
 #ifdef POLISH
 	lcd->setCursor(0, 0);
 	lcd->print(F("Spalanie:"));
 #else
 	lcd->setCursor(0, 0);
 	lcd->print(F("Fuel Cons:"));
+	ajaxValue = "{\"n\":\"Fuel consumption\", \"v\":" + String(val) + ",\"u\":\"l/100\"}";
 #endif
 	lcd->setCursor(0, 2);
-	char val[8];
-	float f = curr_fuel / 100.0;
-	if(f > 100)
-		f = 99.99;
-	dtostrf(f, 5, 2, val);
 	lcd->setCursor(0, 1);
 #ifdef LCD1602
 	lcd->printNumber(val);
@@ -954,6 +966,16 @@ void set_lcd_backlight() {
 	show_confirmation();
 }
 
+void web_update_lcd_backlight(int delta) {
+	int result = lcd_backlight + delta;
+	if(result < 0) result = 0;
+	if(result > 255) result = 255;
+	lcd_backlight = result;
+	ledcWrite(PWM1_CH, lcd_backlight);
+	fileSystem.saveToFile(FILE_LCD_BACKLIGHT, lcd_backlight);
+	brightnessValue = formatToWebString("Brightness", String(int(lcd_backlight)), "");
+}
+
 // Auto OFF is done by LCD disable and periodic check of ECU availability on K-Line
 void set_auto_off() {
 	ledcWrite(lcd_backlight, 0);
@@ -974,6 +996,12 @@ void set_auto_off() {
 	}
     fileSystem.saveToFile(FILE_AUTO_OFF, auto_off);
 	show_confirmation();
+}
+
+void web_update_auto_off() {
+	auto_off = 1 - auto_off;
+	fileSystem.saveToFile(FILE_AUTO_OFF, auto_off);
+	autoOffValue = formatToWebString("Auto off", auto_off ? "On" : "Off", "");
 }
 
 // Temperature alarm - Periodically blink screen on >temp_alarm_thresh
@@ -1030,6 +1058,15 @@ void set_temp_alarm() {
 	}
     fileSystem.saveToFile(FILE_TEMP_AL_SET, temp_alarm_thresh);
 	show_confirmation();
+}
+
+void web_update_temp_alarm(int delta) {
+	int result = int(temp_alarm_thresh) + delta;
+    if(result > 140) temp_alarm_thresh = 140;
+	if(result < 60) temp_alarm_thresh = 60;
+	temp_alarm_thresh = result;
+	fileSystem.saveToFile(FILE_TEMP_AL_SET, temp_alarm_thresh);
+	limitValue = formatToWebString("Temperature alarm limit", String(temp_alarm_thresh), "&deg;C");
 }
 
 void runCheckButton() {
