@@ -4,3 +4,6 @@ dependencies.lock
 LICENSE
 .vscode
 .gitignore
+*.bin
+*.html
+firmware_upload.txt
